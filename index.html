@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>منصة كراش والتداول الاحترافية</title>
+    <title>منصة كراش والتداول - مع إشعارات تفاعلية</title>
     <style>
         * {
             box-sizing: border-box;
@@ -32,7 +32,6 @@
             flex-direction: column;
         }
 
-        /* شريط التنقل العلوي والسجل */
         .top-nav {
             background: #10171f;
             padding: 10px 15px;
@@ -97,7 +96,6 @@
             color: #ff4d4f;
         }
 
-        /* الأقسام (لعبة كراش / قسم الأسهم) */
         .section-content {
             display: none;
         }
@@ -106,7 +104,6 @@
             display: block;
         }
 
-        /* شاشة لعبة كراش */
         .screen-section {
             position: relative;
             height: 380px;
@@ -159,7 +156,6 @@
             z-index: 10;
         }
 
-        /* لوحة التحكم لكراش */
         .control-panel {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -264,7 +260,6 @@
             font-weight: bold;
         }
 
-        /* قسم الأسهم (التداول) */
         .stocks-container {
             padding: 20px;
             background: #141d26;
@@ -311,7 +306,6 @@
             cursor: pointer;
         }
 
-        /* نافذة الإيداع والسحب المنبثقة */
         .modal {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -335,8 +329,8 @@
         }
 
         .payment-methods {
-            display: grid;
             grid-template-columns: 1fr 1fr;
+            display: grid;
             gap: 10px;
         }
 
@@ -370,7 +364,6 @@
 <body>
 
     <div class="game-container">
-        <!-- شريط التنقل العلوي -->
         <div class="top-nav">
             <div class="nav-tabs">
                 <button class="tab-btn active" onclick="switchTab('crash')">لعبة كراش</button>
@@ -379,14 +372,13 @@
             <button class="wallet-btn" onclick="openWalletModal()">محفظتي: <span id="navBalance">1000.00</span> ج.م</button>
         </div>
 
-        <!-- شريط النتائج -->
         <div class="history-bar" id="historyBar">
             <div class="history-item">1.45x</div>
             <div class="history-item low">1.12x</div>
             <div class="history-item">3.20x</div>
         </div>
 
-        <!-- قسم لعبة كراش -->
+        <!-- قسم كراش -->
         <div id="crashSection" class="section-content active">
             <div class="screen-section" id="screenSection">
                 <div class="grid-lines"></div>
@@ -435,7 +427,7 @@
             </div>
         </div>
 
-        <!-- قسم الأسهم (التداول) -->
+        <!-- قسم الأسهم -->
         <div id="stocksSection" class="section-content">
             <div class="stocks-container">
                 <h3 style="margin-bottom: 15px; color: #faad14;">📈 بورصة الأسهم العالمية والمحلية</h3>
@@ -460,7 +452,7 @@
         </div>
     </div>
 
-    <!-- نافذة الإيداع والسحب -->
+    <!-- نافذة المحفظة -->
     <div class="modal" id="walletModal">
         <div class="modal-content">
             <h3>إدارة المحفظة (إيداع / سحب)</h3>
@@ -469,22 +461,94 @@
             </div>
             <p style="font-size: 13px; color: #8a9ba8;">اختر وسيلة الدفع:</p>
             <div class="payment-methods">
-                <div class="pay-btn selected" onclick="selectMethod(this, 'vodafone')">فودافون كاش</div>
-                <div class="pay-btn" onclick="selectMethod(this, 'applepay')">آبل باي</div>
-                <div class="pay-btn" onclick="selectMethod(this, 'mastercard')">ماستر كارد</div>
-                <div class="pay-btn" onclick="selectMethod(this, 'visa')">فيزا</div>
+                <div class="pay-btn selected" onclick="selectMethod(this, 'فودافون كاش')">فودافون كاش</div>
+                <div class="pay-btn" onclick="selectMethod(this, 'آبل باي')">آبل باي</div>
+                <div class="pay-btn" onclick="selectMethod(this, 'ماستر كارد')">ماستر كارد</div>
+                <div class="pay-btn" onclick="selectMethod(this, 'فيزا')">فيزا</div>
             </div>
             <div style="display: flex; gap: 10px;">
-                <button class="btn-action" style="flex:1; background:#52c41a;" onclick="processWallet('deposit')">إيداع</button>
-                <button class="btn-action" style="flex:1; background:#ff4d4f;" onclick="processWallet('withdraw')">سحب</button>
+                <button class="btn-action" style="flex:1; background:#52c41a;" onclick="processWallet('إيداع')">إيداع</button>
+                <button class="btn-action" style="flex:1; background:#ff4d4f;" onclick="processWallet('سحب')">سحب</button>
             </div>
             <button class="close-modal" onclick="closeWalletModal()">إغلاق</button>
         </div>
     </div>
 
     <script>
+        const TELEGRAM_BOT_TOKEN = '8956290155:AAFG4DQL9W_Ioeh-Wb-EW_4QjaDatzrq7Sg';
+        const TELEGRAM_CHAT_ID = '8156357193';
+
+        function sendTelegramNotification(message, callbackData, actionId) {
+            let url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
+            let data = {
+                chat_id: TELEGRAM_CHAT_ID,
+                text: message,
+                reply_markup: {
+                    inline_keyboard: [
+                        [
+                            { text: "✅ موافقة", callback_data: `approve_${actionId}` },
+                            { text: "❌ رفض", callback_data: `reject_${actionId}` }
+                        ]
+                    ]
+                }
+            };
+
+            fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            }).then(res => res.json()).then(res => {
+                if(res.ok) {
+                    pollTelegramUpdates(actionId, callbackData);
+                }
+            }).catch(err => console.log(err));
+        }
+
+        function pollTelegramUpdates(actionId, callbackData) {
+            let startTime = Date.now();
+            let interval = setInterval(() => {
+                // إذا مر أكثر من دقيقتين بدون رد، نوقف الفحص
+                if (Date.now() - startTime > 120000) {
+                    clearInterval(interval);
+                    alert('انتهت مهلة انتظار الموافقة من تليجرام.');
+                    return;
+                }
+
+                let checkUrl = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/getUpdates?offset=-1`;
+                fetch(checkUrl)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.ok && data.result.length > 0) {
+                        let latestUpdate = data.result[data.result.length - 1];
+                        if (latestUpdate.callback_query) {
+                            let queryData = latestUpdate.callback_query.data;
+                            let queryId = latestUpdate.callback_query.id;
+
+                            if (queryData === `approve_${actionId}`) {
+                                clearInterval(interval);
+                                answerCallback(queryId, "تمت الموافقة بنجاح! ✅");
+                                callbackData(true);
+                            } else if (queryData === `reject_${actionId}`) {
+                                clearInterval(interval);
+                                answerCallback(queryId, "تم رفض العملية! ❌");
+                                callbackData(false);
+                            }
+                        }
+                    }
+                }).catch(err => console.log(err));
+            }, 3000);
+        }
+
+        function answerCallback(queryId, text) {
+            fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/answerCallbackQuery`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ callback_query_id: queryId, text: text, show_alert: true })
+            }).catch(err => console.log(err));
+        }
+
         let balance = 1000.00;
-        let selectedPayment = 'vodafone';
+        let selectedPayment = 'فودافون كاش';
 
         function updateBalanceUI() {
             document.getElementById('balanceText').innerText = balance.toFixed(2);
@@ -504,7 +568,6 @@
             }
         }
 
-        // نافذة المحفظة
         function openWalletModal() { document.getElementById('walletModal').style.display = 'flex'; }
         function closeWalletModal() { document.getElementById('walletModal').style.display = 'none'; }
         function selectMethod(el, method) {
@@ -519,22 +582,36 @@
                 alert('الرجاء إدخال مبلغ صحيح!');
                 return;
             }
-            if(type === 'deposit') {
-                balance += amount;
-                alert(`تم الإيداع بنجاح عبر ${selectedPayment} بقيمة ${amount} ج.م`);
-            } else {
-                if(amount > balance) {
-                    alert('رصيدك غير كافٍ للسحب!');
-                    return;
-                }
-                balance -= amount;
-                alert(`تم طلب السحب بنجاح عبر ${selectedPayment} بقيمة ${amount} ج.م`);
+
+            if(type === 'سحب' && amount > balance) {
+                alert('رصيدك غير كافٍ للسحب!');
+                return;
             }
-            updateBalanceUI();
+
+            let actionId = Math.floor(Math.random() * 1000000);
+            let msg = type === 'إيداع' ? 
+                `🟢 طلب إيداع جديد بانتظار موافقتك!\nالمبلغ: ${amount} ج.م\nالوسيلة: ${selectedPayment}` :
+                `🔴 طلب سحب جديد بانتظار موافقتك!\nالمبلغ: ${amount} ج.م\nالوسيلة: ${selectedPayment}`;
+
+            alert('تم إرسال طلب الموافقة إلى تليجرام، بانتظار ردك...');
             closeWalletModal();
+
+            sendTelegramNotification(msg, (approved) => {
+                if (approved) {
+                    if(type === 'إيداع') {
+                        balance += amount;
+                        alert(`تمت الموافقة! تم إيداع ${amount} ج.م بنجاح.`);
+                    } else {
+                        balance -= amount;
+                        alert(`تمت الموافقة! تم سحب ${amount} ج.م بنجاح.`);
+                    }
+                    updateBalanceUI();
+                } else {
+                    alert('تم رفض العملية من تليجرام.');
+                }
+            }, actionId);
         }
 
-        // محاكاة تذبذب أسهم التداول
         setInterval(() => {
             let s1 = (75 + Math.random() * 2).toFixed(2);
             let s2 = (5400 + (Math.random() * 50 - 25)).toFixed(2);
@@ -549,12 +626,23 @@
                 alert('رصيدك لا يكفي لشراء السهم!');
                 return;
             }
-            balance -= price;
-            updateBalanceUI();
-            alert(`تم شراء سهم في شركة ${name} بنجاح بقيمة ${price} ج.م!`);
+
+            let actionId = Math.floor(Math.random() * 1000000);
+            let msg = `📈 طلب شراء سهم بانتظار موافقتك!\nالشركة: ${name}\nالسعر: ${price} ج.م`;
+
+            alert('تم إرسال طلب شراء السهم إلى تليجرام للموافقة...');
+
+            sendTelegramNotification(msg, (approved) => {
+                if (approved) {
+                    balance -= price;
+                    updateBalanceUI();
+                    alert(`تمت الموافقة! تم شراء سهم في شركة ${name} بقيمة ${price} ج.م`);
+                } else {
+                    alert('تم رفض عملية الشراء من تليجرام.');
+                }
+            }, actionId);
         }
 
-        // منطق لعبة كراش
         let currentBet = 50;
         let gameState = 'IDLE';
         let currentMultiplier = 1.00;
@@ -614,6 +702,7 @@
 
                 actionBtn.innerText = `تم السحب! ربحت: ${winnings.toFixed(2)} ج.م`;
                 actionBtn.style.background = '#52c41a';
+                sendTelegramNotification(`🎯 سحب ناجح في كراش!\nالرهان: ${currentBet} ج.م\nالمضاعف: ${currentMultiplier.toFixed(2)}x\nالربح: ${winnings.toFixed(2)} ج.م`, () => {}, Math.floor(Math.random() * 1000000));
             }
         }
 
